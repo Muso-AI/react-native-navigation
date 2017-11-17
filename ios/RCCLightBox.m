@@ -168,9 +168,9 @@ const NSInteger kLightBoxTag = 0x101010;
     if (self.params != nil && style != nil)
     {
         if (style[@"animationIn"] != nil && [style[@"animationIn"] isEqualToString:@"slideLeftIn"]) {
-            self.reactView.transform = CGAffineTransformMakeTranslation(-100, 0);
-        } else if (style[@"animationIn"] != nil && [style[@"animationIn"] isEqualToString:@"slideRightIn"]) {
             self.reactView.transform = CGAffineTransformMakeTranslation(100, 0);
+        } else if (style[@"animationIn"] != nil && [style[@"animationIn"] isEqualToString:@"slideRightIn"]) {
+            self.reactView.transform = CGAffineTransformMakeTranslation(-100, 0);
         } else {
             self.reactView.transform = CGAffineTransformMakeTranslation(0, 100);
         }
