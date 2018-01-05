@@ -119,7 +119,7 @@ public abstract class NavigationApplication extends Application implements React
     public abstract boolean isDebug();
 
     public boolean clearHostOnActivityDestroy() {
-        return true;
+        return false;
     }
 
     @Nullable
