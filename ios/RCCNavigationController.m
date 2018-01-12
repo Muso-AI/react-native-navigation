@@ -178,6 +178,115 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     return;
   }
   
+  // replace
+  if ([performAction isEqualToString:@"replace"])
+  {
+    [self popViewControllerAnimated:NO];
+    
+    NSString *component = actionParams[@"component"];
+    if (!component) return;
+    
+    NSMutableDictionary *passProps = [actionParams[@"passProps"] mutableCopy];
+    passProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE] = COMMAND_TYPE_PUSH;
+    passProps[GLOBAL_SCREEN_ACTION_TIMESTAMP] = actionParams[GLOBAL_SCREEN_ACTION_TIMESTAMP];
+    NSDictionary *navigatorStyle = actionParams[@"style"];
+    
+    NSNumber *keepStyleAcrossPush = [[RCCManager sharedInstance] getAppStyle][@"keepStyleAcrossPush"];
+    BOOL keepStyleAcrossPushBool = keepStyleAcrossPush ? [keepStyleAcrossPush boolValue] : YES;
+    
+    if (keepStyleAcrossPushBool) {
+      
+      if ([self.topViewController isKindOfClass:[RCCViewController class]])
+      {
+        RCCViewController *parent = (RCCViewController*)self.topViewController;
+        NSMutableDictionary *mergedStyle = [NSMutableDictionary dictionaryWithDictionary:parent.navigatorStyle];
+        
+        // there are a few styles that we don't want to remember from our parent (they should be local)
+        [mergedStyle removeObjectForKey:@"navBarHidden"];
+        [mergedStyle removeObjectForKey:@"statusBarHidden"];
+        [mergedStyle removeObjectForKey:@"navBarHideOnScroll"];
+        [mergedStyle removeObjectForKey:@"drawUnderNavBar"];
+        [mergedStyle removeObjectForKey:@"drawUnderTabBar"];
+        [mergedStyle removeObjectForKey:@"statusBarBlur"];
+        [mergedStyle removeObjectForKey:@"navBarBlur"];
+        [mergedStyle removeObjectForKey:@"navBarTranslucent"];
+        [mergedStyle removeObjectForKey:@"statusBarHideWithNavBar"];
+        [mergedStyle removeObjectForKey:@"autoAdjustScrollViewInsets"];
+        [mergedStyle removeObjectForKey:@"statusBarTextColorSchemeSingleScreen"];
+        [mergedStyle removeObjectForKey:@"disabledBackGesture"];
+        [mergedStyle removeObjectForKey:@"disabledSimultaneousGesture"];
+        [mergedStyle removeObjectForKey:@"navBarCustomView"];
+        [mergedStyle removeObjectForKey:@"navBarComponentAlignment"];
+        
+        [mergedStyle addEntriesFromDictionary:navigatorStyle];
+        navigatorStyle = mergedStyle;
+      }
+    }
+    
+    RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
+    viewController.controllerId = passProps[@"screenInstanceID"];
+    
+    [self processTitleView:viewController
+                     props:actionParams
+                     style:navigatorStyle];
+    
+    NSString *backButtonTitle = actionParams[@"backButtonTitle"];
+    if (!backButtonTitle) {
+      NSNumber *hideBackButtonTitle = [[RCCManager sharedInstance] getAppStyle][@"hideBackButtonTitle"];
+      BOOL hideBackButtonTitleBool = hideBackButtonTitle ? [hideBackButtonTitle boolValue] : NO;
+      backButtonTitle = hideBackButtonTitleBool ? @"" : backButtonTitle;
+    }
+    
+    if (backButtonTitle)
+    {
+      UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:backButtonTitle
+                                                                   style:UIBarButtonItemStylePlain
+                                                                  target:nil
+                                                                  action:nil];
+      
+      self.topViewController.navigationItem.backBarButtonItem = backItem;
+    }
+    else
+    {
+      self.topViewController.navigationItem.backBarButtonItem = nil;
+    }
+    
+    NSNumber *backButtonHidden = actionParams[@"backButtonHidden"];
+    BOOL backButtonHiddenBool = backButtonHidden ? [backButtonHidden boolValue] : NO;
+    if (backButtonHiddenBool)
+    {
+      viewController.navigationItem.hidesBackButton = YES;
+    }
+    
+    NSArray *leftButtons = actionParams[@"leftButtons"];
+    if (leftButtons)
+    {
+      [self setButtons:leftButtons viewController:viewController side:@"left" animated:NO];
+    }
+    
+    NSArray *rightButtons = actionParams[@"rightButtons"];
+    if (rightButtons)
+    {
+      [self setButtons:rightButtons viewController:viewController side:@"right" animated:NO];
+    }
+    
+    NSString *animationType = actionParams[@"animationType"];
+    if ([animationType isEqualToString:@"fade"])
+    {
+      CATransition *transition = [CATransition animation];
+      transition.duration = 0.25;
+      transition.type = kCATransitionFade;
+      
+      [self.view.layer addAnimation:transition forKey:kCATransition];
+      [self pushViewController:viewController animated:NO];
+    }
+    else
+    {
+      [self pushViewController:viewController animated:animated];
+    }
+    return;
+  }
+  
   // pop
   if ([performAction isEqualToString:@"pop"])
   {
