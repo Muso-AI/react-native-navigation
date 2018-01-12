@@ -268,6 +268,49 @@ function navigatorPush(navigator, params) {
   });
 }
 
+function navigatorReplace(navigator, params) {
+  if (!params.screen) {
+    console.error('Navigator.push(params): params.screen is required');
+    return;
+  }
+  const screenInstanceID = _.uniqueId('screenInstanceID');
+  const {
+    navigatorStyle,
+    navigatorButtons,
+    navigatorEventID
+  } = _mergeScreenSpecificSettings(params.screen, screenInstanceID, params);
+  const passProps = Object.assign({}, params.passProps);
+  passProps.navigatorID = navigator.navigatorID;
+  passProps.screenInstanceID = screenInstanceID;
+  passProps.navigatorEventID = navigatorEventID;
+
+  params.navigationParams = {
+    screenInstanceID,
+    navigatorStyle,
+    navigatorButtons,
+    navigatorEventID,
+    navigatorID: navigator.navigatorID
+  };
+
+  savePassProps(params);
+
+  Controllers.NavigationControllerIOS(navigator.navigatorID).replace({
+    title: params.title,
+    subtitle: params.subtitle,
+    titleImage: params.titleImage,
+    component: params.screen,
+    animated: params.animated,
+    animationType: params.animationType,
+    passProps: passProps,
+    style: navigatorStyle,
+    backButtonTitle: params.backButtonTitle,
+    backButtonHidden: params.backButtonHidden,
+    leftButtons: navigatorButtons.leftButtons,
+    rightButtons: navigatorButtons.rightButtons,
+    timestamp: Date.now()
+  });
+}
+
 function navigatorPop(navigator, params) {
   Controllers.NavigationControllerIOS(navigator.navigatorID).pop({
     animated: params.animated,
@@ -644,6 +687,7 @@ export default {
   startTabBasedApp,
   startSingleScreenApp,
   navigatorPush,
+  navigatorReplace,
   navigatorPop,
   navigatorPopToRoot,
   navigatorResetTo,

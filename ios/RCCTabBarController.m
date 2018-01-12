@@ -118,6 +118,24 @@
     {
       UIColor *color = tabBarBackgroundColor != (id)[NSNull null] ? [RCTConvert UIColor:tabBarBackgroundColor] : nil;
       self.tabBar.barTintColor = color;
+      self.tabBar.tintColor = color;
+    }
+
+    NSString *tabBarTopBorderColor = tabsStyle[@"tabBarTopBorderColor"];
+    if (tabBarTopBorderColor)
+    {
+      UIColor *color = tabBarTopBorderColor != (id)[NSNull null] ? [RCTConvert UIColor:
+                                                                        tabBarTopBorderColor] : nil;
+
+      CALayer *topBorder = [CALayer layer];
+      topBorder.frame = CGRectMake(0.0f, 0.0f, self.view.frame.size.width, 0.3f);
+
+      // Set the background colour of the new layer to the colour you wish to
+      // use for the border.
+      topBorder.backgroundColor = color.CGColor;
+
+      // Add the later to the tab bar's existing layer
+      [self.tabBar.layer addSublayer:topBorder];
     }
 
     NSString *tabBarTranslucent = tabsStyle[@"tabBarTranslucent"];
@@ -214,10 +232,10 @@
     if (icon)
     {
       iconImage = [RCTConvert UIImage:icon];
-      if (buttonColor)
-      {
-        iconImage = [[self image:iconImage withColor:buttonColor] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-      }
+//      if (buttonColor)
+//      {
+//        iconImage = [[self image:iconImage withColor:buttonColor] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+//      }
     }
     UIImage *iconImageSelected = nil;
     id selectedIcon = tabItemLayout[@"props"][@"selectedIcon"];
@@ -227,9 +245,9 @@
       iconImageSelected = [RCTConvert UIImage:icon];
     }
 
-    viewController.tabBarItem = [[UITabBarItem alloc] initWithTitle:title image:iconImage tag:0];
+    viewController.tabBarItem = [[UITabBarItem alloc] initWithTitle:title image:[iconImage imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] tag:0];
     viewController.tabBarItem.accessibilityIdentifier = tabItemLayout[@"props"][@"testID"];
-    viewController.tabBarItem.selectedImage = iconImageSelected;
+    viewController.tabBarItem.selectedImage = [iconImageSelected imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
 
     id imageInsets = tabItemLayout[@"props"][@"iconInsets"];
     if (imageInsets && imageInsets != (id)[NSNull null])
